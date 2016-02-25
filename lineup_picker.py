@@ -10,20 +10,23 @@ pg, sg, sf, pf, c = positions['point-guards'], positions['shooting-guards'], pos
 
 
 def findLineup():
+	bestscore = 100
+	best = []
+	bestscore = 0
+
 	for point_guard in pg:
 		cost = point_guard[1]
 		pp_est = point_guard[2]
+		lineup = [point_guard[0]]
 
-		bestscore = 100
-		best = []
-		bestscore = 0
+		
 
 		for shooting_guard in sg:
 			if cost + shooting_guard[1]> 50000:
 				continue
-			cost = shooting_guard[1]
-			pp_est = shooting_guard[2]
-			lineup = [shooting_guard[0]]
+			cost += shooting_guard[1]
+			pp_est += shooting_guard[2]
+			lineup += [shooting_guard[0]]
 
 			for small_forward in sf:
 				if cost + small_forward[1]> 50000:
@@ -61,6 +64,11 @@ def findLineup():
 				cost -= small_forward[1]
 				pp_est -= small_forward[2]
 				lineup.remove(small_forward[0])
+
+			cost -= shooting_guard[1]
+			pp_est -= shooting_guard[2]
+			lineup.remove(shooting_guard[0])
+		
 
 	print bestscore
 	return best
