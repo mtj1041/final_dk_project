@@ -43,7 +43,7 @@ for period in range(1,122):
         big_matrix = []
         for player in game_data.keys():
             if not player == 'player':
-                if game_data[player]['PTS'] == '--':
+                if game_data[player]['PTS'] == '--': # no data available for player that day
                     return None
                 else:
                     vector = [float(game_data[player]['PTS']), float(game_data[player]['3PM']), float(game_data[player]['REB']), float(game_data[player]['AST']), float(game_data[player]['STL']), float(game_data[player]['BLK'])]
@@ -52,4 +52,3 @@ for period in range(1,122):
 
     if createDataMatrix():
         all_matrices.append(createDataMatrix())
-    print(all_matrices)
