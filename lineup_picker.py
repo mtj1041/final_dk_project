@@ -4,6 +4,11 @@ positions = scraper.todaysList()
 
 pg, sg, sf, pf, c = positions['point-guards'], positions['shooting-guards'], positions['small-forwards'], positions['power-forwards'], positions['centers']
 
+sorthelp = lambda x: x[2]
+
+forwards = sorted(pf + sf, key=sorthelp)
+guards = sorted(pg + sg, key=sorthelp)
+utility = sorted(pg + sg + pf + sf + c, key=sorthelp)
 
 
 def findLineup():
