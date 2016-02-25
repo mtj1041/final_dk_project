@@ -231,19 +231,19 @@ def todaysList():
     fantasy_rankings = sorted(fantasy_rankings, key=lambda x: x[0])[::-1]
     print("Today's fantasy rankings...")
     rank = 1
-    for pos in ['point-guards', 'shooting-guards', 'small-forwards', 'power-forwards', 'centers']:
+    for pos in ['point-guards', 'shooting-guards', 'small-forwards', 'power-forwards', 'centers', 'guards', 'forwards', 'util']:
         positions[pos] = []
     for i in fantasy_rankings:
         if 'COST' in composite_data[i[1]].keys():
-            if (float(composite_data[i[1]]['COST'])) > 2000 and (i[0] > 20):
+            if (float(composite_data[i[1]]['COST'])) > 2000 and (i[0] > 23):
                 print(str(rank) + ". " + i[1] + ", Projected FPTS: " + str(i[0]) + " Cost: " + composite_data[i[1]]['COST'])
                 positions[composite_data[i[1]]['POS']].append(i[1])
+                positions['util']
                 composite_data[i[1]]['FPTS'] = i[0]
                 rank += 1
-
     result = {}
     for pos in positions:
         lst = positions[pos]
-        tup_lst = [(name, int(composite_data[name]['COST']), int(composite_data[name]['FPTS'])) for name in lst)]
+        tup_lst = [(name, int(composite_data[name]['COST']), int(composite_data[name]['FPTS'])) for name in lst]
         result[pos] = tup_lst
     return result
