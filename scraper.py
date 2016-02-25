@@ -9,6 +9,7 @@ import operator
 
 composite_data = {}
 positions = {}
+missing = []
 fantasy_rankings = []
 
 base_url = 'http://espn.go.com/nba/statistics/player/_/stat/scoring-per-game/sort/avgPoints/qualified/false/position/'
@@ -23,7 +24,6 @@ def loadAllData():
             'http://espn.go.com/nba/statistics/player/_/stat/blocks/sort/avgBlocks/qualified/false/count/',
             'http://espn.go.com/nba/statistics/player/_/stat/double-doubles/sort/doubleDouble/qualified/false/count/',
             'http://espn.go.com/nba/statistics/player/_/stat/double-doubles/sort/tripleDouble/qualified/false/count/']
-
 
     for url in urls:
         loadPlayers = 1
@@ -62,8 +62,8 @@ def loadAllData():
 def loadSalaries():
     r = requests.get('http://www.rotowire.com/daily/nba/optimizer.htm?site=DraftKings')
     soup = BeautifulSoup(r.text)
-    table = soup.find("table", attrs={"class":"tablesorter optimizer-sticky lineupopt-playertable"})
-    next_table2 = table.find_all("td", attrs={"class":"lineupopt-salary"})
+    table = soup.find("table", attrs={"id":"playerPoolTable"})
+    next_table2 = table.find_all("td", attrs={"class":"rwo-salary"})
     next_table = table.find_all("a")
     current_player = ''
     all_players = []
@@ -72,8 +72,11 @@ def loadSalaries():
     for i in next_table:
         name = i.get("title").lower()
         if name not in composite_data.keys():
-            name = missing_players[name]
-        all_players.append(name)
+            missing.append(name)
+            if name in missing_players.keys():
+                name = missing_players[name]
+        if name in composite_data.keys():
+            all_players.append(name)
 
     for i in next_table2:
         to_dollar = i.get_text()[1:].split(",")
@@ -131,7 +134,6 @@ def loadPlayerPositions():
             soup = BeautifulSoup(r.text)
             table = soup.find("table", attrs={"class":"tablehead"})
             current_team = ''
-
             rows = []
             tr_elem = table.find("tr")
             if tr_elem:
@@ -233,9 +235,10 @@ def main():
         positions[pos] = []
     for i in fantasy_rankings:
         if 'COST' in composite_data[i[1]].keys():
-            if (float(composite_data[i[1]]['COST'])) > 2000 and (i[0] > 15):
+            if (float(composite_data[i[1]]['COST'])) > 2000 and (i[0] > 20):
                 print(str(rank) + ". " + i[1] + ", Projected FPTS: " + str(i[0]) + " Cost: " + composite_data[i[1]]['COST'])
                 positions[composite_data[i[1]]['POS']].append(i[1])
+                composite_data[i[1]]['FPTS'] = i[0]
                 rank += 1
 
 main()
