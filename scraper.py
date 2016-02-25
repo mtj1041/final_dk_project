@@ -70,9 +70,9 @@ def loadSalaries():
     current_player = ''
     all_players = []
     all_players_salary = []
-    missing_players = {"frank kaminsky":"frank iii", "joseph young":"joe young", "lou williams":"louis williams", "louis amundson":"lou amundson", "johnny o'bryant":"johnny iii", "luc moute":"luc richard mbah a moute", "j.j. hickson":"jj hickson", "cristiano felício":"cristiano felicio", "roy marble":"devyn marble"}
+    missing_players = {"frank kaminsky":"frank iii", "joseph young":"joe young", "lou williams":"louis williams", "louis amundson":"lou amundson", "johnny o'bryant":"johnny iii", "luc moute":"luc richard mbah a moute", "j.j. hickson":"jj hickson", "cristiano fel\xc3\xadcio":"cristiano felicio", "roy marble":"devyn marble"}
     for i in next_table:
-        name = i.get("title").lower()
+        name = i.get("title").lower().encode('utf-8')
         if name not in composite_data.keys():
             missing.append(name)
             if name in missing_players.keys():
