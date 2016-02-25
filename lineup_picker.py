@@ -1,8 +1,5 @@
 import scraper
 
-
-
-
 positions = scraper.todaysList()
 
 pg, sg, sf, pf, c = positions['point-guards'], positions['shooting-guards'], positions['small-forwards'], positions['power-forwards'], positions['centers']
@@ -18,8 +15,6 @@ def findLineup():
 		cost = point_guard[1]
 		pp_est = point_guard[2]
 		lineup = [point_guard[0]]
-
-		
 
 		for shooting_guard in sg:
 			if cost + shooting_guard[1]> 50000:
@@ -51,7 +46,7 @@ def findLineup():
 
 						if bestscore < pp_est:
 							bestscore = pp_est
-							best = lineup
+							best = copy(lineup)
 
 						lineup.remove(center[0])
 						cost -= center[1]
@@ -68,7 +63,7 @@ def findLineup():
 			cost -= shooting_guard[1]
 			pp_est -= shooting_guard[2]
 			lineup.remove(shooting_guard[0])
-		
+
 
 	print bestscore
 	return best
