@@ -78,31 +78,31 @@ def findLineup():
 
 									cost -= u[1]
 									pp_est -= u[2]
-									lineup.remove(u[0])
+									lineup.pop()
 
 								cost -= g[1]
 								pp_est -= g[2]
-								lineup.remove(g[0])
+								lineup.pop()
 
 							cost -= f[1]
 							pp_est -= f[2]
-							lineup.remove(f[0])
+							lineup.pop()
 
-						lineup.remove(center[0])
 						cost -= center[1]
 						pp_est -= center[2]
+						lineup.pop()
 
 					cost -= power_forward[1]
 					pp_est -= power_forward[2]
-					lineup.remove(power_forward[0])
+					lineup.pop()
 
 				cost -= small_forward[1]
 				pp_est -= small_forward[2]
-				lineup.remove(small_forward[0])
+				lineup.pop()
 
 			cost -= shooting_guard[1]
 			pp_est -= shooting_guard[2]
-			lineup.remove(shooting_guard[0])
+			lineup.pop()
 
 
 	print bestscore
