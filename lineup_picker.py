@@ -46,7 +46,7 @@ def findLineup():
 
 						if bestscore < pp_est:
 							bestscore = pp_est
-							best = copy(lineup)
+							best = list(lineup)
 
 						lineup.remove(center[0])
 						cost -= center[1]
