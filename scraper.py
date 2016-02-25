@@ -218,7 +218,7 @@ def createFantasyRankings(players):
     return fantasy_data
 
 
-def main():
+def todaysList():
     todays_players = loadActiveRosters()
     abbr_to_name = makeReverseDictionary()
     print("Loading all player data...")
@@ -241,4 +241,9 @@ def main():
                 composite_data[i[1]]['FPTS'] = i[0]
                 rank += 1
 
-main()
+    result = {}
+    for pos in positions:
+        lst = positions[pos]
+        tup_lst = [(name, composite_data[name]['COST'], composite_data[name]['FPTS']) for name in lst]
+        result[pos] = lst
+    return result
