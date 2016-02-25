@@ -244,6 +244,6 @@ def todaysList():
     result = {}
     for pos in positions:
         lst = positions[pos]
-        tup_lst = [(name, int(composite_data[name]['COST']), int(composite_data[name]['FPTS']) for name in lst)]
+        tup_lst = [(name, int(composite_data[name]['COST']), int(composite_data[name]['FPTS'])) for name in lst)]
         result[pos] = tup_lst
     return result
