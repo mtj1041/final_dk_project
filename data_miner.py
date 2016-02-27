@@ -1,7 +1,6 @@
 from bs4 import BeautifulSoup
 from datetime import date
 from operator import itemgetter
-from lxml import html
 import requests
 import time
 import sys
@@ -9,9 +8,24 @@ import datetime
 import operator
 import numpy as np
 
-all_matrices = []
+matrix_X = []
+vector_Y = []
 
-def populateTrainingData():
+def populatev1():
+
+    def createDataMatrix():
+        # Creates Matrix X in Xw = Y s.t. w is the weight vector,
+        # and the rows of X are in the form [PTS, 3PM, REB, AST, STL, BLK]
+        big_matrix = []
+        for player in game_data.keys():
+            if not player == 'player':
+                if game_data[player]['PTS'] == '--': # no data available for player that day
+                    return None
+                else:
+                    vector = [float(game_data[player]['PTS']), float(game_data[player]['3PM']), float(game_data[player]['REB']), float(game_data[player]['AST']), float(game_data[player]['STL']), float(game_data[player]['BLK'])]
+                    big_matrix.append(vector)
+        return big_matrix
+
     for period in range(1,122):
         r = requests.get('http://games.espn.go.com/fba/leaders?&scoringPeriodId=' + str(period) + '&seasonId=2016')
         soup = BeautifulSoup(r.text)
@@ -38,20 +52,9 @@ def populateTrainingData():
                 real_index += 1
             index += 1
 
-    def createDataMatrix():
-        # Creates Matrix A in Ax = B s.t. x is the weight vector,
-        # and the rows of A are in the form [PTS, 3PM, REB, AST, STL, BLK]
-        big_matrix = []
-        for player in game_data.keys():
-            if not player == 'player':
-                if game_data[player]['PTS'] == '--': # no data available for player that day
-                    return None
-                else:
-                    vector = [float(game_data[player]['PTS']), float(game_data[player]['3PM']), float(game_data[player]['REB']), float(game_data[player]['AST']), float(game_data[player]['STL']), float(game_data[player]['BLK'])]
-                    big_matrix.append(vector)
-        return big_matrix
+        player_date_matrix = createDataMatrix()
+        if player_date_matrix:
+            matrix_X.extend(player_date_matrix)
 
-    player_date_matrix = createDataMatrix()
-    if player_date_matrix:
-        all_matrices.append(player_date_matrix)
+
 
