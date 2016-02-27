@@ -57,4 +57,11 @@ def populatev1():
             matrix_X.extend(player_date_matrix)
 
 
+def getXmatrix():
+    return matrix_X
+
+def getYvector():
+    return vector_Y
+
+
 
