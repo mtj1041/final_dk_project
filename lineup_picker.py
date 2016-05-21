@@ -1,16 +1,28 @@
 import scraper
+import statsForMatchUp
+
+
 
 positions = scraper.todaysList()
+#positions is a dictionary of {position -> array of player stats}
+# where each element in the array of player stats consists of a tuple of ('name', price, projected_score)
+# ex. results = {'point-guards': [('russell westbrook', 11100, 52), ('stephen curry', 10700, 47), ('kyle lowry', 8300, 37), 
+#               ('kyrie irving', 8400, 37), ('shaun livingston', 3200, 19), ('cory joseph', 3100, 16), 
+#               ('matthew dellavedova', 2400, 14)], 'forwards': [], 'small-forwards': [('kevin durant', 10300, 49), 
+#               ('lebron james', 10500, 48), ('harrison barnes', 4300, 20), ('andre iguodala', 4200, 20), ... }
 pg, sg, sf, pf, c = positions['point-guards'], positions['shooting-guards'], positions['small-forwards'], positions['power-forwards'], positions['centers']
+#assign the array of tuples of player info to appropriate name
 
 sorthelp = lambda x: x[2]
 
+#Create the broader categories by combining appropriate positions
 forwards = sorted(pf + sf, key=sorthelp)
 guards = sorted(pg + sg, key=sorthelp)
 utility = sorted(pg + sg + pf + sf + c, key=sorthelp)
 
+#Given the arrays of pg, sg, sf, etc. that were created above. this function will go through 8 for loops to try all legal combinations and return the best option
+#Can we improve this? Do we need to? Not sure...
 def findLineup():
-	bestscore = 100
 	best = []
 	bestscore = 0
 
@@ -75,7 +87,9 @@ def findLineup():
 										print(bestscore)
 										print(lineup)
 										best = list(lineup)
-
+#WHY DO WE HAVE ALL THIS POPPING AND SUBTRACTING? WOULDNT IT JUST BE EASIER
+#TO SAVE THE BEST SCORE AND THE BEST LINEUP AND THEN SET PP_EST AND LINEUP AND COST
+#BACK TO 0? AM I MISSING SOMETHING?
 									cost -= u[1]
 									pp_est -= u[2]
 									lineup.pop()
@@ -106,13 +120,3 @@ def findLineup():
 
 	print(bestscore)
 	return best
-
-
-
-
-
-
-
-
-
-						
