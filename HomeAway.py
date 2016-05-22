@@ -14,7 +14,7 @@ import csv
 base_url = 'http://espn.go.com/nba/player/gamelog/_/id/'
 
 
-def getStatsForMatchUp(playerID):
+def getStatsForHomeAway(playerID, location):
     page = base_url + str(playerID)
     print(page)
     r = requests.get(page)
@@ -32,49 +32,77 @@ def getStatsForMatchUp(playerID):
     stl = 0
     to = 0
     count = 0
-    apnts = 0
-    arebs = 0
-    aasst = 0
-    ablock = 0
-    astl = 0
-    ato = 0
-    acount = 0
-    for array in data:
-        if array[1][:2] == 'vs':
-            if int(array[3]) > 10: #If they played more than 10 minutes
-                count += 1
-                rebs += float(array[-7])
-                asst += float(array[-6])
-                block += float(array[-5])
-                stl += float(array[-4])
-                to += float(array[-3])
-                pnts += float(array[-1])
-                print array[-1]
-        elif array[1][0]== '@':
-            if int(array[3]) > 10: #If they played more than 10 minutes
-                acount += 1
-                arebs += float(array[-7])
-                aasst += float(array[-6])
-                ablock += float(array[-5])
-                astl += float(array[-4])
-                ato += float(array[-3])
-                apnts += float(array[-1])
-                print array[-1]
+    dbldbl = 0
+    tpldbl = 0
+    three = 0
 
-    print('------------HOME-------------')
-    print("Average points at home: " + str(pnts/count))
-    print("Average rebounds at home: " + str(rebs/count))
-    print("Average assists at home: " + str(asst/count))
-    print("Average blocks at home: "  + str(block/count))
-    print("Average steals at home: "  + str(stl/count))
-    print("Average turnovers at home: " + str(to/count))
-    print('------------AWAY-------------')
-    print("Average points away: " + str(apnts/acount))
-    print("Average rebounds away: " + str(arebs/acount))
-    print("Average assists away: " + str(aasst/acount))
-    print("Average blocks away: "  + str(ablock/acount))
-    print("Average steals away: "  + str(astl/acount))
-    print("Average turnovers away: " + str(ato/acount))
+    for array in data:
+        if location == 'home':
+            if array[1][:2] == 'vs':
+                if int(array[3]) > 10: #If they played more than 10 minutes
+                    count += 1.0
+                    three = float(str(array[-11]).split("-")[0])
+                    rebs += float(array[-7])
+                    asst += float(array[-6])
+                    block += float(array[-5])
+                    stl += float(array[-4])
+                    to += float(array[-3])
+                    pnts += float(array[-1])
+                    stat = [float(array[-1]),float(array[-4]),float(array[-5]),float(array[-6]),float(array[-7])]
+                    countdouble = 0
+                    #test for triple doubles and double doubles
+                    for s in stat:
+                        if s >= 10:
+                            countdouble += 1.0
+                    if countdouble == 2:
+                        dbldbl += 1.0
+                    elif countdouble > 2:
+                        tpldbl += 1.0
+        else:
+            if array[1][0]== '@':
+                if int(array[3]) > 10: #If they played more than 10 minutes
+                    count += 1.0
+                    three = float(str(array[-11]).split("-")[0])
+                    rebs += float(array[-7])
+                    asst += float(array[-6])
+                    block += float(array[-5])
+                    stl += float(array[-4])
+                    to += float(array[-3])
+                    pnts += float(array[-1])
+                    stat = [float(array[-1]),float(array[-4]),float(array[-5]),float(array[-6]),float(array[-7])]
+                    countdouble = 0
+                    #test for triple doubles and double doubles
+                    for s in stat:
+                        if s >= 10:
+                            countdouble += 1.0
+                    if countdouble == 2:
+                        dbldbl += 1.0
+                    elif countdouble > 2:
+                        tpldbl += 1.0
+    if count == 0:
+        return 0
+
+    pnts = pnts/count
+    rebs = rebs/count
+    asst = asst/count
+    block = block/count
+    stl = stl/count
+    to = to/count
+    dbldbl = dbldbl/count
+    tpldbl = tpldbl/count
+    print("Average points " + location + " :" + str(pnts))
+    print("Average rebounds " + location + " :"+ str(rebs))
+    print("Average assists " + location + " :"+ str(asst))
+    print("Average blocks "  + location + " :"+ str(block))
+    print("Average steals "  + location + " :"+ str(stl))
+    print("Average turnovers " + location + " :"+ str(to))
+    fantasypnts = 0.5 * three
+    fantasypnts += 1.5*dbldbl + 3*tpldbl
+    fantasypnts += pnts + 1.25*rebs + 1.5*asst + 2*stl + 2*block
+    fantasypnts -= 0.5*to
+    print("Average total fantasy points  " + location + ": " + str(fantasypnts))
+    return fantasypnts
+
     
 
-getStatsForMatchUp(3975)
+getStatsForHomeAway(3449, 'home')
