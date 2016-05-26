@@ -9,6 +9,7 @@ import datetime
 import operator
 import numpy as np
 import csv
+import json
 
 full_data = {}
 sport_ids = []
@@ -18,7 +19,7 @@ sport_ids = []
 
 def loadData(sport, playerid):
     r = requests.get('http://espn.go.com/' + sport + '/player/gamelog/_/id/' + str(playerid))
-    soup = BeautifulSoup(r.text)
+    soup = BeautifulSoup(r.text, "html5lib")
     table = soup.find("table", attrs={"class":"tablehead"})
     if not table: # No table = no stats
         return
@@ -69,7 +70,7 @@ def generateIDsForSports():
     links = generateTeamLinks('mlb')
     for link in links:
         generateTeamIDs(link)
-
+        
 # Loads data for all sports. Tested MLB/NBA, should work for all sports #
 def loadPlayerDataForEntireSport(sport):
     links = generateTeamLinks(sport)
@@ -77,8 +78,20 @@ def loadPlayerDataForEntireSport(sport):
         generateTeamIDs(link)
     for i in sport_ids:
         loadData(sport, i)
-        
-        
+    filename = sport + '_data.txt'
+    with open(filename, 'w') as outfile:
+        json.dump(full_data, outfile)
+
+def loadDataFromJSON(sport):
+    filename = sport + "_data.txt"
+    with open(filename) as json_data:
+        all_data = json.load(json_data)
+    
+    return all_data
+
+# for MLB #
+
+full_data = loadDataFromJSON('nba')
         
         
     
