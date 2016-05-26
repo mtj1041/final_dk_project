@@ -26,8 +26,7 @@ def loadData(sport, playerid):
     stats_headers = table.find("tr", attrs={"class":"colhead"})
     if not stats_headers: # "No stats to show"
         return
-    name = soup.find("h1").get_text()
-    print(name)
+    name = soup.find("h1").get_text().lower()
     full_data[name] = {}
     even_data = table.find_all("tr", attrs={"class":"evenrow"})
     odd_data = table.find_all("tr", attrs={"class":"oddrow"})
@@ -86,13 +85,11 @@ def loadDataFromJSON(sport):
     filename = sport + "_data.txt"
     with open(filename) as json_data:
         all_data = json.load(json_data)
-    
     return all_data
 
 # for MLB #
 
-full_data = loadDataFromJSON('nba')
-        
+full_data = loadDataFromJSON('nba')        
         
     
     

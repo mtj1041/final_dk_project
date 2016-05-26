@@ -8,22 +8,12 @@ import datetime
 import operator
 import numpy as np
 import csv
-from openpyxl import load_workbook
-from openpyxl import Workbook
 import statsForMatchUp
-
-wb = load_workbook(filename = 'ESPNplayerIDs.xlsx') #load the workbook  
-ws = wb['Names and IDs'] #grab the worksheet from the workbook
-playerIDs = {} #create a dictionary {playeer name -> player ID}
-
-#loop through all 464 players that are in the workbook put them with their ID's in the dictionary
-for row in range(1,464):
-    playerCell = "A" + str(row)
-    idCell = "B" + str(row)
-    playerArray = ws[playerCell].value.lower().split("-")
-    player = playerArray[0] + " " + playerArray[1]
-    iD = int(ws[idCell].value)
-    playerIDs[player] = iD
+import NBAids
+import HomeAway
+import trainer
+import lastFive
+playerIDs = NBAids.getIDs() #create a dictionary {playeer name -> player ID}
 
 composite_data = {} #all data for each player
 # e.g. { ... 'dwyane wade': {'TOPG': '2.7', 'AP48M': '6.1', 'FTM-FTA': '3.6-4.6', 'FG%': '.469', 
@@ -173,7 +163,7 @@ def loadMatchups():
                 todays_games.append(game_title)
                 todays_matchups[first_team] = second_team
                 todays_matchups[second_team] = first_team
-    url = 'http://www.nba.com/gameline/20160522'
+    url = 'http://www.nba.com/gameline/20160527'
     r = requests.get(url)
     soup = BeautifulSoup(r.text)
     for link in soup.find_all('a'):
@@ -346,26 +336,32 @@ def createFantasyRankings(players):
             pts += float(composite_data[player]['PTS']) + 1.25 * (float(composite_data[player]['REB']) / gp) + 1.5 * float(composite_data[player]['APG']) + 2 * float(composite_data[player]['STPG']) + 2 * float(composite_data[player]['BLKPG'])
             pts -= 0.5 * float(composite_data[player]['TOPG'])
 
-            if player == "matthew dellavedova":
-                pts = 0
-
             #calculate average fantasy points against opponent they are playing
 
             #######These next two lines are bad...need to fix
-            players_own_team = loadActiveRosters()[1]
+            players_own_team = composite_data[player]['TEAM']
             matchups = loadMatchups()[2]
             ############
+
             if player in playerIDs:
                 playerID = playerIDs[player]
             else:
                 continue
-            playerTeam = players_own_team[player]
+            playerTeam = players_own_team
+            if playerTeam == "GS":
+                playerTeam = "GSW"
             playerOpp = matchups[playerTeam]
+            location = 'away'
+            if playerTeam == 'GSW' or playerTeam == 'TOR':
+                location = 'home'
             print(playerID)
             print(playerOpp)
             pntsAgainstOpp = statsForMatchUp.getStatsForMatchUp(playerID, playerOpp)
+            homeAwayPts = HomeAway.getStatsForHomeAway(playerID, location)
+            last5games = lastFive.getLastFive(player)
             #average overall points and points against opp
-            avgPnts = (pts + pntsAgainstOpp) / 2
+            w1, w2, w3, w4 = trainer.getWeights(player)
+            avgPnts = (pts * w1) + (pntsAgainstOpp * w2) + (homeAwayPts * w3) + (last5games * w4)
             fantasy_data.append((avgPnts, player))
     print("fantasy DATA")
     print(fantasy_data)
