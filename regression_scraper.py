@@ -19,8 +19,14 @@ sport_ids = []
 # TODO: Make a list of playerids for each sport and load them all # 
 
 def loadData(sport, playerid):
+    r = requests.get('http://espn.go.com/' + sport + '/player/_/id/' + str(playerid))
+    soup = BeautifulSoup(r.text)
+
+    pos = soup.find("li", attrs={"class":"first"})
+    full = pos.get_text().split(" ")[-1]
+
     r = requests.get('http://espn.go.com/' + sport + '/player/gamelog/_/id/' + str(playerid))
-    soup = BeautifulSoup(r.text, "html5lib")
+    soup = BeautifulSoup(r.text)
     table = soup.find("table", attrs={"class":"tablehead"})
     if not table: # No table = no stats
         return
@@ -28,8 +34,9 @@ def loadData(sport, playerid):
     if not stats_headers: # "No stats to show"
         return
     name = soup.find("h1").get_text()
-    print(name)
+    print(name + " " + full)
     full_data[name] = {}
+    full_data[name]['POS'] = full
     even_data = table.find_all("tr", attrs={"class":"evenrow"})
     odd_data = table.find_all("tr", attrs={"class":"oddrow"})
     data = even_data + odd_data
@@ -91,7 +98,7 @@ def loadDataFromJSON(sport):
         all_data = json.load(json_data)
     return all_data
 
-def getTodaysMatchups():
+def getTodaysMatchups(): # Just a test
     r = requests.get('http://dailybaseballdata.com/cgi-bin/dailyhit.pl?date=527&game=d&xyear=0&pa=0&showdfs=&sort=ops&r40=0&scsv=0')
     soup = BeautifulSoup(r.text, "html5lib")
     a_elems = soup.find_all("a")
@@ -104,25 +111,38 @@ def getTodaysMatchups():
     
     print(matchups)
 
-def getMatchupsJavaScript():
-    r = requests.get('http://scores.espn.go.com/mlb/scoreboard')
-    soup = BeautifulSoup(r.text, "html5lib")
+def getMatchups(): # Real Function, ugly code, will fix later
+    curr = datetime.datetime.now()
+    year = str(curr.year)
+    month = str(curr.month) if curr.month > 9 else ('0' + str(curr.month))
+    day = str(curr.day) if curr.day > 9 else ('0' + str(curr.day))
+
+    today = year + month + day
+
+    r = requests.get('http://scores.espn.go.com/mlb/scoreboard/_/date/' + today)
+    soup = BeautifulSoup(r.text)
     scripts = soup.find_all("script")
     
     matchups = []        
     for i in scripts:
         if '.scoreboardData' in i.get_text():
-            #p = re.compile('window.espn.scoreboardData = (.*?)')
-        
-            m = i.get_text().split(" = ")
-            print(m)
+            m = i.get_text().split("window")[1].split("= ")[1].split(",")
+            filtered, matchups = [], []
+            for _ in m:
+                if 'href' in _ and 'stats/batting/_/name/' in _:
+                    filtered.append('http:' + _.split(":")[-1].split('"')[0])
+            for x in range(len(filtered)):
+                if x % 2 == 0:
+                    matchups.append((filtered[x], filtered[x+1]))
+    return matchups
+            
+
+def loadScoreboardFromJSON():
+    filename = "scoreboards.txt"
+    with open(filename) as json_data:
+        all_data = json.load(json_data)
+    return all_data
     
 
 def getMLBData():
     return loadDataFromJSON('mlb')
-        
-        
-    
-    
-    
-    
