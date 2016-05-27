@@ -163,7 +163,7 @@ def loadMatchups():
                 todays_games.append(game_title)
                 todays_matchups[first_team] = second_team
                 todays_matchups[second_team] = first_team
-    url = 'http://www.nba.com/gameline/20160527'
+    url = 'http://www.nba.com/gameline/20160526'
     r = requests.get(url)
     soup = BeautifulSoup(r.text)
     for link in soup.find_all('a'):
@@ -362,6 +362,8 @@ def createFantasyRankings(players):
             #average overall points and points against opp
             w1, w2, w3, w4 = trainer.getWeights(player)
             avgPnts = (pts * w1) + (pntsAgainstOpp * w2) + (homeAwayPts * w3) + (last5games * w4)
+            f1=open('weights.txt', 'w+')
+            print("WEIGHTS FOR " + player + ": w1: " + str(w1) + " w2: " + str(w2) + " w3: " + str(w3) + " w4: " + str(w4), file=f1)
             fantasy_data.append((avgPnts, player))
     print("fantasy DATA")
     print(fantasy_data)

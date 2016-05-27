@@ -14,6 +14,7 @@ import json
 
 full_data = {}
 sport_ids = []
+other_changes = {"kike hernandez":"enrique hernandez", "b.j. upton":"melvin upton jr.", "j. saltalamacchia":"jarrod saltalamacchia", "c. bethancourt":"christian bethancourt"}
 
 # Loads data into an automatically generated dictionary for a given player #
 # TODO: Make a list of playerids for each sport and load them all # 
@@ -33,7 +34,7 @@ def loadData(sport, playerid):
     stats_headers = table.find("tr", attrs={"class":"colhead"})
     if not stats_headers: # "No stats to show"
         return
-    name = soup.find("h1").get_text()
+    name = soup.find("h1").get_text().lower()
     print(name + " " + full)
     full_data[name] = {}
     full_data[name]['POS'] = full
@@ -49,10 +50,38 @@ def loadData(sport, playerid):
             for _ in range(len(new_keys)):
                 full_data[name][data_row[0]][new_keys[_]] = new_data[_]
 
+def loadDKPlayerData():
+    positionDict = {'pg':'point-guards', 'sg' : 'shooting-guards', 'sf': 'small-forwards', 'pf' : 'power-forwards', 'c':'centers'}
+    url = "http://www.rotowire.com/daily/mlb/optimizer.htm?site=DraftKings"
+    r = requests.get(url)
+    soup = BeautifulSoup(r.text)
+    table = soup.find("tbody", attrs={"id":"players"})
+    rows = table.find_all("tr")
+    full_data['julio urias'] = {}
+    for r in rows:
+        data = r.find('td', attrs = {"class": "rwo-name align-l p10l"})
+        name = (data.get_text().lower())
+        spacer = '\xa0'
+        name = name.split(spacer)[0] #Sometimes there are comments on a player (i.e. GTD for game time decision, how can we get rid of these?)
+        if not name in full_data.keys():
+            for i in full_data.keys():
+                if name.split(" ")[0].split("-")[0] in i and name.split(" ")[-1] in i:
+                    name = i
+            if name in other_changes.keys():
+                name = other_changes[name]
+        posData = r.find('td', attrs = {"class": "rwo-pos align-c"}) 
+        salaryData = r.find('td', attrs={"class":"rwo-salary basic"})
+
+        pos = (posData.get_text().lower())
+        print("NAME: " + name + " " + pos + " SALARY: " + salaryData.get_text()[1:].split(",")[0] + salaryData.get_text()[1:].split(",")[1])
+        # Override, for the players that play today #
+        full_data[name]['POS'] = pos
+        full_data[name]['SALARY'] = salaryData.get_text()[1:].split(",")[0] + salaryData.get_text()[1:].split(",")[1]
+
 def generateTeamLinks(sport):
     base_url = 'http://espn.go.com/' + sport + '/teams'
     r = requests.get(base_url)
-    soup = BeautifulSoup(r.text, "html5lib")
+    soup = BeautifulSoup(r.text)
     links = soup.find_all("a", href=True)
     sport_links = []
     for i in links:
@@ -63,7 +92,7 @@ def generateTeamLinks(sport):
 def generateTeamIDs(base_url):
     print(base_url)
     r = requests.get(base_url)
-    soup = BeautifulSoup(r.text, "html5lib")
+    soup = BeautifulSoup(r.text)
     table = soup.find("table", attrs={"class":"tablehead"})
     even_data = table.find_all("tr", attrs={"class":"evenrow"})
     odd_data = table.find_all("tr", attrs={"class":"oddrow"})
@@ -100,7 +129,7 @@ def loadDataFromJSON(sport):
 
 def getTodaysMatchups(): # Just a test
     r = requests.get('http://dailybaseballdata.com/cgi-bin/dailyhit.pl?date=527&game=d&xyear=0&pa=0&showdfs=&sort=ops&r40=0&scsv=0')
-    soup = BeautifulSoup(r.text, "html5lib")
+    soup = BeautifulSoup(r.text)
     a_elems = soup.find_all("a")
     
     matchups = []        
@@ -146,3 +175,8 @@ def loadScoreboardFromJSON():
 
 def getMLBData():
     return loadDataFromJSON('mlb')
+
+full_data = getMLBData()
+
+# Missing players for some reason #
+loadData('mlb', 31015)
