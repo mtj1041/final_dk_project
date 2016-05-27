@@ -9,6 +9,7 @@ import datetime
 import operator
 import numpy as np
 import csv
+import re
 import json
 
 full_data = {}
@@ -65,7 +66,7 @@ def generateTeamIDs(base_url):
         if href_data:
             player_id = int(href_data[0]['href'].split("/")[-2])
             sport_ids.append(player_id)
-            
+    
 def generateIDsForSports():
     links = generateTeamLinks('mlb')
     for link in links:
@@ -82,16 +83,43 @@ def loadPlayerDataForEntireSport(sport):
     with open(filename, 'w') as outfile:
         json.dump(full_data, outfile)
 
+# Loads pre-loaded JSON data #
+# TODO: Each day, write new data into new JSON object. Or update weekly #
 def loadDataFromJSON(sport):
     filename = sport + "_data.txt"
     with open(filename) as json_data:
         all_data = json.load(json_data)
-    
     return all_data
 
-# for MLB #
+def getTodaysMatchups():
+    r = requests.get('http://dailybaseballdata.com/cgi-bin/dailyhit.pl?date=527&game=d&xyear=0&pa=0&showdfs=&sort=ops&r40=0&scsv=0')
+    soup = BeautifulSoup(r.text, "html5lib")
+    a_elems = soup.find_all("a")
+    
+    matchups = []        
+    for i in range(len(a_elems)):
+        if 'name' in a_elems[i].attrs:
+            if not a_elems[i]['name'] == 'gameLast' and 'game' in a_elems[i]['name']:
+                matchups.append((a_elems[i+1]['name'], a_elems[i+2]['name']))
+    
+    print(matchups)
 
-full_data = loadDataFromJSON('nba')
+def getMatchupsJavaScript():
+    r = requests.get('http://scores.espn.go.com/mlb/scoreboard')
+    soup = BeautifulSoup(r.text, "html5lib")
+    scripts = soup.find_all("script")
+    
+    matchups = []        
+    for i in scripts:
+        if '.scoreboardData' in i.get_text():
+            #p = re.compile('window.espn.scoreboardData = (.*?)')
+        
+            m = i.get_text().split(" = ")
+            print(m)
+    
+
+def getMLBData():
+    return loadDataFromJSON('mlb')
         
         
     

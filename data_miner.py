@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from datetime import date
 from operator import itemgetter
+from regression_scraper import getMLBData
 import requests
 import time
 import sys
@@ -10,6 +11,26 @@ import numpy as np
 
 matrix_X = []
 vector_Y = []
+
+# (A^T * A)^-1 * A^T * b # 
+# Creating A #
+# Structure of A: 72x3, 72 entries of observations #
+
+# For one player, example shown below #
+def createObservationMatrix(player): # Ax
+    data = getMLBData()
+    example = data['Mike Trout']
+    
+    # Find opponent through MLB.com or something #
+    # Iterate through dictionary to find games played vs the opponent #
+    # Iterate through dictionary to find games played at home or away, and find the average # 
+    # Find the overall averages (again, iterate through the dictionary) # 
+    
+    # if A = [v1 v2 v3] each row element represents overall average, home vs away average, and
+    # average vs opponent respectively. 
+    
+    print(example)
+    
 
 def populatev1():
 
