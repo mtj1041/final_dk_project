@@ -13,6 +13,7 @@ import NBAids
 import HomeAway
 import trainer
 import lastFive
+import numpy as np
 playerIDs = NBAids.getIDs() #create a dictionary {playeer name -> player ID}
 
 composite_data = {} #all data for each player
@@ -321,7 +322,19 @@ def loadID(player, page):
 #Given the players that are playing today (array of names)
 #will calculate the proj fantasy score and print the rankings for today
 # returns an array of tuples that have (players proj points, player name)
-def createFantasyRankings(players):
+
+def createBigMatrix(players):
+    A_mtr = None
+    y_vector = None
+    for player in players:
+        if A_mtr == None:
+            A_mtr, y_vector = trainer.getAMatrix(player)[0], trainer.getAMatrix(player)[1]
+        else:
+            A_mtr, y_vector = np.vstack((A_mtr, trainer.getAMatrix(player)[0])), np.vstack((y_vector, trainer.getAMatrix(player)[1]))
+            print("Player: " + player + " Shape: " + str(np.shape(A_mtr)))
+    return (A_mtr, y_vector)
+
+def createFantasyRankings(players, weights=None):
     print("PLAYERS")
     print(players)
     fantasy_data = []
@@ -360,7 +373,10 @@ def createFantasyRankings(players):
             homeAwayPts = HomeAway.getStatsForHomeAway(playerID, location)
             last5games = lastFive.getLastFive(player)
             #average overall points and points against opp
-            w1, w2, w3, w4 = trainer.getWeights(player)
+            if weights == None:
+                w1, w2, w3, w4 = trainer.getWeights(player)
+            else:
+                w1, w2, w3, w4 = weights
             avgPnts = (pts * w1) + (pntsAgainstOpp * w2) + (homeAwayPts * w3) + (last5games * w4)
             f1=open('weights.txt', 'w+')
             print("WEIGHTS FOR " + player + ": w1: " + str(w1) + " w2: " + str(w2) + " w3: " + str(w3) + " w4: " + str(w4), file=f1)
@@ -381,6 +397,9 @@ def createFantasyRankings(players):
 #######################
 def todaysList():
     todays_players, players_own_team = loadActiveRosters()
+    todays_players.remove('james michael')
+    todays_players.remove('timofey mozgov')
+    print(todays_players)
     abbr_to_name = makeReverseDictionary()
     matchups = loadMatchups()[2]
     print("Loading all player data...")
@@ -389,6 +408,10 @@ def todaysList():
     loadSalaries()
     print("Creating fantasy rankings...")
     loadPlayerPositions()
+    #hugeMatrix = createBigMatrix(todays_players)
+    print(todays_players)
+    #weights = np.linalg.lstsq(hugeMatrix[0], hugeMatrix[1])[0]
+    #print(weights)
     fantasy_rankings = createFantasyRankings(todays_players)
     fantasy_rankings = sorted(fantasy_rankings, key=lambda x: x[0])[::-1]
     print("Today's fantasy rankings...")
@@ -397,7 +420,7 @@ def todaysList():
         positions[pos] = []
     for i in fantasy_rankings:
         if 'COST' in composite_data[i[1]].keys():
-            if (float(composite_data[i[1]]['COST'])) > 0 and (i[0] > 0):
+            if (float(composite_data[i[1]]['COST']) > 0 and (i[0] > 0)):
                 print(str(rank) + ". " + i[1] + ", Projected FPTS: " + str(i[0]) + " Cost: " + composite_data[i[1]]['COST'])
                 positions[composite_data[i[1]]['POS']].append(i[1])
                 positions['util']

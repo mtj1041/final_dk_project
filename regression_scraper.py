@@ -16,6 +16,7 @@ full_data = {}
 sport_ids = []
 other_changes = {"kike hernandez":"enrique hernandez", "b.j. upton":"melvin upton jr.", "j. saltalamacchia":"jarrod saltalamacchia", "c. bethancourt":"christian bethancourt"}
 
+date_dict = {"Mar":3, "Apr":4, "May":5, "Jun":6, "Jul":7, "Aug":8, "Sep":9, "Oct":10, "Nov":11}
 # Loads data into an automatically generated dictionary for a given player #
 # TODO: Make a list of playerids for each sport and load them all # 
 
@@ -45,10 +46,14 @@ def loadData(sport, playerid):
     for i in data:
         data_row = [filtered.get_text() for filtered in filter(lambda x : str(type(x)) == "<class 'bs4.element.Tag'>", i)]
         if len(data_row) == len(dict_keys):
-            full_data[name][data_row[0]] = {}
+            numeric_month = str(date_dict[data_row[0].split(" ")[0]])
+            numeric_day = str(data_row[0].split(" ")[1]) if int(data_row[0].split(" ")[1]) > 9 else '0' + data_row[0].split(" ")[1]
+            numeric_date = int(numeric_month + numeric_day)
+            full_data[name][numeric_date] = {}
             new_keys, new_data = dict_keys[1:], data_row[1:]
             for _ in range(len(new_keys)):
-                full_data[name][data_row[0]][new_keys[_]] = new_data[_]
+                full_data[name][numeric_date][new_keys[_]] = new_data[_]
+
 
 def loadDKPlayerData():
     positionDict = {'pg':'point-guards', 'sg' : 'shooting-guards', 'sf': 'small-forwards', 'pf' : 'power-forwards', 'c':'centers'}
@@ -101,6 +106,7 @@ def generateTeamIDs(base_url):
         href_data = i.find_all("a", href=True)
         if href_data:
             player_id = int(href_data[0]['href'].split("/")[-2])
+            print(player_id)
             sport_ids.append(player_id)
     
 def generateIDsForSports():
@@ -164,7 +170,33 @@ def getMatchups(): # Real Function, ugly code, will fix later
                 if x % 2 == 0:
                     matchups.append((filtered[x], filtered[x+1]))
     return matchups
-            
+
+def getTodaysPlayers():
+    urls = getMatchups()
+
+def getTodaysPitchers():
+    curr = datetime.datetime.now()
+    year = str(curr.year)
+    month = str(curr.month) if curr.month > 9 else ('0' + str(curr.month))
+    day = str(curr.day) if curr.day > 9 else ('0' + str(curr.day))
+
+    today = year + "/" + month + "/" + day
+
+    r = requests.get('http://mlb.mlb.com/news/probable_pitchers/?c_id=mlb&date=' + today)
+
+    soup = BeautifulSoup(r.text)
+    scripts = soup.find_all("a", href=True)
+
+    pitchers = []
+    forbidden_text = ['Career stats', 'Players of the week', 'Players of the month']
+    for i in scripts:
+        if 'player.jsp?player' in i['href'] and i.get_text() not in forbidden_text:
+            pitchers.append(i.get_text().lower())
+
+    new = list(set(pitchers))
+    new.remove('')
+    return new
+
 
 def loadScoreboardFromJSON():
     filename = "scoreboards.txt"
@@ -175,8 +207,6 @@ def loadScoreboardFromJSON():
 
 def getMLBData():
     return loadDataFromJSON('mlb')
-
-full_data = getMLBData()
 
 # Missing players for some reason #
 loadData('mlb', 31015)

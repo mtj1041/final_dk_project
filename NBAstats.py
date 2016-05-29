@@ -112,7 +112,7 @@ def getFantasyPoints(pnts, rebs, asst, block, stl, to, three, tpldbl, dbldbl, co
 	fantasypnts += 1.5*dbldbl + 3*tpldbl
 	fantasypnts += pnts + 1.25*rebs + 1.5*asst + 2*stl + 2*block
 	fantasypnts -= 0.5*to
-	print("Average total fantasy points: " + str(fantasypnts))
+	#print("Average total fantasy points: " + str(fantasypnts))
 	return fantasypnts
 
 
