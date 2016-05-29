@@ -78,6 +78,29 @@ def lastFiveAverage(player):
         tp = 0
         total_iterated = 0
 
+def stadiumAverages(player):
+    sorted_keys = sorted(full_data[player].keys())
+    gp, tp = 0, 0
+    home = False
+    for i in range(len(sorted_keys) - 1):
+        if i == 0:
+            full_data[player][sorted_keys[i]]['REG-STADIUM-AVG'] = 0
+        else:
+            stadium = full_data[player][sorted_keys[i]]['OPP']
+            if 'vs' in stadium:
+                home = True
+            for x in range(0, i):
+                if stadium == full_data[player][sorted_keys[x]]['OPP'] or (home and 'vs' in full_data[player][sorted_keys[x]]['OPP']):
+                    gp += 1
+                    tp += full_data[player][sorted_keys[x]]['FPTS']
+            if not gp == 0:
+                full_data[player][sorted_keys[i]]['REG-STADIUM-AVG'] = tp/gp
+            else:
+                full_data[player][sorted_keys[i]]['REG-STADIUM-AVG'] = 0
+            tp = 0
+            gp = 0
+            home = False
+
 
 def rankAllMLBPlayers(playerslist):
     players = []
