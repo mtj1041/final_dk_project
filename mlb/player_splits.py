@@ -1,7 +1,6 @@
 import regression_scraper
 import json
 
-#full_data = regression_scraper.getMLBData()
 full_data = regression_scraper.getMLBData()
 
 def determineAverageFPts(player):
@@ -67,12 +66,12 @@ def lastFiveAverage(player):
     for i in range(len(sorted_keys) - 1):
         if i == 0:
             total_iterated += 1
-        elif i < 5 and i > 0:
+        elif i < 7 and i > 0:
             for x in range(0, i):
                 total_iterated += 1
                 tp += full_data[player][sorted_keys[x]]['FPTS']
         else:
-            for x in range(i-5, i):
+            for x in range(i-7, i):
                 total_iterated += 1
                 tp += full_data[player][sorted_keys[x]]['FPTS']
         full_data[player][sorted_keys[i]]['REG-LAST-FIVE'] = tp / total_iterated
@@ -130,6 +129,38 @@ def againstTeamAvg(player):
             tp = 0
             gp = 0
 
+def avgAgainstTeam(player, team):
+    teams = ['vs ' + team, '@ ' + team]
+    tot = 0
+    gp = 0
+    for i in full_data[player].keys():
+        if i == 'POS':
+            continue
+        if full_data[player]['POS'] == 'SP' or full_data[player]['POS'] == 'RP':
+            if full_data[player][i]['OPPONENT'] in teams:
+                gp += 1
+                tot += full_data[player][i]['FPTS']
+        else:
+            if full_data[player][i]['OPP'] in teams:
+                gp += 1
+                tot += full_data[player][i]['FPTS']
+
+    if gp == 0:
+        gp = 1
+    return tot/gp
+
+def lastFiveAvg(player):
+    sorted_keys = sorted(full_data[player].keys())
+    keys_we_want = sorted_keys[len(sorted_keys)-8:len(sorted_keys)-1]
+    tot = 0
+    gp = 0
+
+    for i in keys_we_want:
+        print(i)
+        tot += full_data[player][i]['FPTS']
+        gp += 1
+
+    return tot/gp
 def createAveragesForPlayer(player):
     print("Loading averages for player " + player + "...")
     regressionOverall(player)
@@ -149,7 +180,14 @@ def rankAllMLBPlayers(playerslist):
         index += 1
 
 def writeAveragesToJSON():
-    #regression_scraper.loadPlayerDataForEntireSport('mlb')
+    #full_data = regression_scraper.loadPlayerDataForEntireSport('mlb')
+    copy = list(full_data.keys())
+
+    # purge the dictionary #
+    for player in copy:
+        if len(full_data[player].keys()) == 1:
+            del full_data[player]
+
     for player in full_data.keys():
         if not (full_data[player]['POS'] == 'SP' or full_data[player]['POS'] == 'RP'):
             keys = list(full_data[player].keys())

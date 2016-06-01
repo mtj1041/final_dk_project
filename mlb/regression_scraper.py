@@ -26,14 +26,14 @@ def loadData(sport, playerid):
 
     pos = soup.find("li", attrs={"class":"first"})
     full = pos.get_text().split(" ")[-1]
-
+    print(str(playerid))
     r = requests.get('http://espn.go.com/' + sport + '/player/gamelog/_/id/' + str(playerid))
     soup = BeautifulSoup(r.text)
     table = soup.find("table", attrs={"class":"tablehead"})
     if not table: # No table = no stats
         return
-    stats_headers = table.find("tr", attrs={"class":"colhead"})
-    if not stats_headers: # "No stats to show"
+    stats_headers_all = table.find("tr", attrs={"class":"colhead"})
+    if not stats_headers_all: # "No stats to show"
         return
     name = soup.find("h1").get_text().lower()
     print(name + " " + full)
@@ -42,6 +42,11 @@ def loadData(sport, playerid):
     even_data = table.find_all("tr", attrs={"class":"evenrow"})
     odd_data = table.find_all("tr", attrs={"class":"oddrow"})
     data = even_data + odd_data
+    stats_headers = []
+    for i in stats_headers_all:
+        if str(type(i)) == "<class 'bs4.element.Tag'>":
+            #print("geee: " + i.get_text())
+            stats_headers.append(i)
     dict_keys = [i.get_text() for i in stats_headers]
     for i in data:
         data_row = [filtered.get_text() for filtered in filter(lambda x : str(type(x)) == "<class 'bs4.element.Tag'>", i)]
@@ -76,7 +81,6 @@ def loadDKPlayerData():
                 name = other_changes[name]
         posData = r.find('td', attrs = {"class": "rwo-pos align-c"}) 
         salaryData = r.find('td', attrs={"class":"rwo-salary basic"})
-
         pos = (posData.get_text().lower())
         print("NAME: " + name + " " + pos + " SALARY: " + salaryData.get_text()[1:].split(",")[0] + salaryData.get_text()[1:].split(",")[1])
         # Override, for the players that play today #
@@ -137,13 +141,11 @@ def getTodaysMatchups(): # Just a test
     r = requests.get('http://dailybaseballdata.com/cgi-bin/dailyhit.pl?date=527&game=d&xyear=0&pa=0&showdfs=&sort=ops&r40=0&scsv=0')
     soup = BeautifulSoup(r.text)
     a_elems = soup.find_all("a")
-    
     matchups = []        
     for i in range(len(a_elems)):
         if 'name' in a_elems[i].attrs:
             if not a_elems[i]['name'] == 'gameLast' and 'game' in a_elems[i]['name']:
                 matchups.append((a_elems[i+1]['name'], a_elems[i+2]['name']))
-    
     print(matchups)
 
 def getMatchups(): # Real Function, ugly code, will fix later
@@ -179,34 +181,24 @@ def getTodaysPitchers():
     year = str(curr.year)
     month = str(curr.month) if curr.month > 9 else ('0' + str(curr.month))
     day = str(curr.day) if curr.day > 9 else ('0' + str(curr.day))
-
     today = year + "/" + month + "/" + day
-
     r = requests.get('http://mlb.mlb.com/news/probable_pitchers/?c_id=mlb&date=' + today)
-
     soup = BeautifulSoup(r.text)
     scripts = soup.find_all("a", href=True)
-
     pitchers = []
     forbidden_text = ['Career stats', 'Players of the week', 'Players of the month']
     for i in scripts:
         if 'player.jsp?player' in i['href'] and i.get_text() not in forbidden_text:
             pitchers.append(i.get_text().lower())
-
     new = list(set(pitchers))
     new.remove('')
     return new
-
 
 def loadScoreboardFromJSON():
     filename = "scoreboards.txt"
     with open(filename) as json_data:
         all_data = json.load(json_data)
     return all_data
-    
 
 def getMLBData():
     return loadDataFromJSON('mlb')
-
-# Missing players for some reason #
-loadData('mlb', 31015)
