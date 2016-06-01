@@ -397,8 +397,6 @@ def createFantasyRankings(players, weights=None):
 #######################
 def todaysList():
     todays_players, players_own_team = loadActiveRosters()
-    todays_players.remove('james michael')
-    todays_players.remove('timofey mozgov')
     print(todays_players)
     abbr_to_name = makeReverseDictionary()
     matchups = loadMatchups()[2]

@@ -53,8 +53,9 @@ def averageAccuracy(player):
         print("A matrix: " + str(A_to_point))
         print(" --   --  --  --")
         print("y matrix: " + str(y_to_point))
-
+        print(" --   --  --  --")
         weights = np.linalg.lstsq(A_to_point, y_to_point)[0]
+        print("weights " + str(weights))
         num_weights = weights.tolist()
         w1, w2, w3, w4 = num_weights[0][0],num_weights[1][0],num_weights[2][0],num_weights[3][0]
         prediction = 0
