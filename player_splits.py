@@ -1,5 +1,7 @@
 import regression_scraper
+import json
 
+#full_data = regression_scraper.getMLBData()
 full_data = regression_scraper.getMLBData()
 
 def determineAverageFPts(player):
@@ -7,7 +9,6 @@ def determineAverageFPts(player):
     hits = 0
     gp = 0
     tp = 0
-
     if full_data[player]['POS'] == 'SP' or full_data[player]['POS'] == 'RP':
         for i in full_data[player].keys():
             if not i == 'POS':
@@ -27,33 +28,34 @@ def determineAverageFPts(player):
     else:
         for i in full_data[player].keys():
             if not i == 'POS':
-                if int(full_data[player][i]['AB']) > 0:
-                    gp += 1
-                    hits = int(full_data[player][i]['H'])
-                    doubles = int(full_data[player][i]['2B'])
-                    triples = int(full_data[player][i]['3B'])
-                    hr = int(full_data[player][i]['HR'])
-                    singles = hits - doubles - triples - hr
-                    runs = int(full_data[player][i]['R'])
-                    sb = int(full_data[player][i]['SB'])
-                    bb = int(full_data[player][i]['BB'])
-                    rbi = int(full_data[player][i]['RBI'])
-                    pts = (3 * singles) + 5 * doubles + 3 * triples + 10 * hr + 2 * rbi + 2 * bb + 5 * sb
-                    full_data[player][i]['FPTS'] = pts
-                    tp += pts
+                gp += 1
+                hits = int(full_data[player][i]['H'])
+                doubles = int(full_data[player][i]['2B'])
+                triples = int(full_data[player][i]['3B'])
+                hr = int(full_data[player][i]['HR'])
+                singles = hits - doubles - triples - hr
+                runs = int(full_data[player][i]['R'])
+                sb = int(full_data[player][i]['SB'])
+                bb = int(full_data[player][i]['BB'])
+                rbi = int(full_data[player][i]['RBI'])
+                pts = (3 * singles) + 5 * doubles + 3 * triples + 10 * hr + 2 * rbi + 2 * bb + 5 * sb
+                full_data[player][i]['FPTS'] = pts
+                tp += pts
     return tp / gp
 
-# Finds the regression average for overall fantasy points, for one player #
-def averagePtsToDate(player): # Average points ON THE DAY OF BEING PLAYED. Prior to the resutls of that game.
+def regressionOverall(player): # Average points ON THE DAY OF BEING PLAYED. Prior to the results of that game.
     total_pts = 0
     gp = 0
     sorted_keys = sorted(full_data[player].keys())
-    for i in sorted_keys:
-        if not i == 'POS':
-            if int(full_data[player][i]['AB']) > 0:
-                gp += 1
-                total_pts += full_data[player][i]['FPTS']
-                full_data[player][i]['REG-OVERALL'] = total_pts / gp
+    for i in range(len(sorted_keys)-1):
+        if i == 0:
+            gp = 1
+        for x in range(0, i):
+            gp += 1
+            total_pts += full_data[player][sorted_keys[x]]['FPTS']
+        full_data[player][sorted_keys[i]]['REG-OVERALL'] = total_pts / gp
+        total_pts = 0
+        gp = 0
     print("Loaded overall point averages for " + player)
 
 # [1, 2, 3, 4, 5, 6, 7, 8] #
@@ -63,7 +65,6 @@ def lastFiveAverage(player):
     total_iterated = 0
     tp = 0
     for i in range(len(sorted_keys) - 1):
-        print(sorted_keys[i])
         if i == 0:
             total_iterated += 1
         elif i < 5 and i > 0:
@@ -86,11 +87,15 @@ def stadiumAverages(player):
         if i == 0:
             full_data[player][sorted_keys[i]]['REG-STADIUM-AVG'] = 0
         else:
-            stadium = full_data[player][sorted_keys[i]]['OPP']
+            if (full_data[player]['POS'] == 'SP' or full_data[player]['POS'] == 'RP'):
+                key = 'OPPONENT'
+            else:
+                key = 'OPP'
+            stadium = full_data[player][sorted_keys[i]][key]
             if 'vs' in stadium:
                 home = True
             for x in range(0, i):
-                if stadium == full_data[player][sorted_keys[x]]['OPP'] or (home and 'vs' in full_data[player][sorted_keys[x]]['OPP']):
+                if stadium == full_data[player][sorted_keys[x]][key] or (home and 'vs' in full_data[player][sorted_keys[x]][key]):
                     gp += 1
                     tp += full_data[player][sorted_keys[x]]['FPTS']
             if not gp == 0:
@@ -101,6 +106,36 @@ def stadiumAverages(player):
             gp = 0
             home = False
 
+def againstTeamAvg(player):
+    sorted_keys = sorted(full_data[player].keys())
+    gp, tp = 0, 0
+    for i in range(len(sorted_keys) - 1):
+        if i == 0:
+            full_data[player][sorted_keys[i]]['REG-TEAM-AVG'] = 0
+        else:
+            if (full_data[player]['POS'] == 'SP' or full_data[player]['POS'] == 'RP'):
+                key = 'OPPONENT'
+            else:
+                key = 'OPP'
+            opponent = full_data[player][sorted_keys[i]][key].split(" ")[-1]
+
+            for x in range(0, i):
+                if opponent == full_data[player][sorted_keys[x]][key].split(" ")[-1]:
+                    gp += 1
+                    tp += full_data[player][sorted_keys[x]]['FPTS']
+            if not gp == 0:
+                full_data[player][sorted_keys[i]]['REG-TEAM-AVG'] = tp/gp
+            else:
+                full_data[player][sorted_keys[i]]['REG-TEAM-AVG'] = 0
+            tp = 0
+            gp = 0
+
+def createAveragesForPlayer(player):
+    print("Loading averages for player " + player + "...")
+    regressionOverall(player)
+    lastFiveAverage(player)
+    stadiumAverages(player)
+    againstTeamAvg(player)
 
 def rankAllMLBPlayers(playerslist):
     players = []
@@ -113,6 +148,18 @@ def rankAllMLBPlayers(playerslist):
         print(str(index) + ". " + i[0] + " Average FPts: " + str(i[1]))
         index += 1
 
-for i in full_data.keys():
-    determineAverageFPts(i)
+def writeAveragesToJSON():
+    #regression_scraper.loadPlayerDataForEntireSport('mlb')
+    for player in full_data.keys():
+        if not (full_data[player]['POS'] == 'SP' or full_data[player]['POS'] == 'RP'):
+            keys = list(full_data[player].keys())
+            for i in keys:
+                if not i == 'POS':
+                    if full_data[player][i]['AB'] == '0':
+                        del full_data[player][i]
+    for i in full_data.keys():
+        determineAverageFPts(i)
+        createAveragesForPlayer(i)
+    with open('mlb_data.txt', 'w') as outfile:
+        json.dump(full_data, outfile)
     # write to JSON #
