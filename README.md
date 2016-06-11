@@ -1,8 +1,6 @@
-# final_dk_project
+# DrafKings Automator Project
 
-Draftkings Automator Project
-
-General Idea: use trained regression model to generate fantasy point projection rankings; select best lineup from these rankings with cost constraints in mind.
+General Idea: Use trained regression model to generate fantasy point projection rankings; select best lineup from these rankings with cost constraints in mind.
 
 lineup_picker - currently does the brunt work of selecting the best lineup given rankings and costs.
 
