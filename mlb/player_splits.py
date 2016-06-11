@@ -3,6 +3,7 @@ import json
 
 full_data = regression_scraper.getMLBData()
 
+
 def determineAverageFPts(player):
     ab = 0 # games played where AB > 0
     hits = 0
