@@ -1,4 +1,4 @@
-# DrafKings Automator Project
+# DraftKings Automator Project
 
 General Idea: Use trained regression model to generate fantasy point projection rankings; select best lineup from these rankings with cost constraints in mind.
 
